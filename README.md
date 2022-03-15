@@ -1,3 +1,3 @@
 # srealip (Secure Real IP)
 
-Go package for securly extracting HTTP client's real public IP
+Go package for securely extracting HTTP client's real public IP
