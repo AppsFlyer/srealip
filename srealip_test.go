@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -48,47 +47,29 @@ func TestIsPrivate(t *testing.T) {
 func TestSecureRealIp(t *testing.T) {
 	publicAddr1 := "144.12.54.87"
 	publicAddr2 := "119.14.55.11"
-	// publicAddr3 := "119.15.55.11"
-	// localAddr := "127.0.0.0"
-	// privateAddr := "192.168.1.1"
+	publicAddr3 := "119.15.55.11"
+	localAddr := "127.0.0.0"
+	privateAddr := "192.168.1.1"
 
 	tests := map[string]struct {
 		request  *http.Request
 		expected string
 	}{
-		"No X-Forwarded-For": {request: newHttpRequest(publicAddr1, ""), expected: publicAddr2},
+		"No X-Forwarded-For":             {request: newHttpRequest(publicAddr1, ""), expected: publicAddr1},
+		"X-Forwarded-For - one value":    {request: newHttpRequest(publicAddr1, "", publicAddr2), expected: publicAddr2},
+		"multiple X-Forwarded-For":       {request: newHttpRequest(publicAddr3, "", localAddr, publicAddr1, publicAddr2), expected: publicAddr2},
+		"Has local X-Forwarded-For":      {request: newHttpRequest(publicAddr3, "", publicAddr1, localAddr), expected: publicAddr1},
+		"Has private X-Forwarded-For":    {request: newHttpRequest(publicAddr3, "", publicAddr1, localAddr, privateAddr), expected: publicAddr1},
+		"Has X-Real-IP":                  {request: newHttpRequest(publicAddr3, publicAddr2, publicAddr1, localAddr), expected: publicAddr1},
+		"not IP X-Forwarded-For":         {request: newHttpRequest(publicAddr3, "", "testString"), expected: publicAddr3},
+		"not IP X-Forwarded-For then IP": {request: newHttpRequest(publicAddr3, "", publicAddr1, localAddr, "testString"), expected: publicAddr1},
 	}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			got := SecureRealIP(tc.request)
-
-			diff := cmp.Diff(tc.expected, got)
-			if diff != "" {
-				t.Fatalf(diff)
+			if actual := SecureRealIP(tc.request); tc.expected != actual {
+				t.Errorf("expected %s but got %s", tc.expected, actual)
 			}
 		})
 	}
 }
-
-// TODO -case with multiple Http Header of x-forwared for
-
-// {
-// 	"X-Forwarded-For - one value":{
-// 	request:  newHttpRequest(publicAddr1, "", publicAddr2),
-// 	expected: publicAddr2,
-// }, {
-// 	"Has multiple X-Forwarded-For":{
-// 	request:  newHttpRequest(publicAddr3, "", localAddr, publicAddr1, publicAddr2),
-// 	expected: publicAddr2,
-// },
-// {
-// 	"Has local X-Forwarded-For":{
-// 	request:  newHttpRequest(publicAddr3, "", publicAddr1, localAddr),
-// 	expected: publicAddr1,
-// },
-// {
-// 	"Has private X-Forwarded-For":{
-// 	request:  newHttpRequest(publicAddr3, "", publicAddr1, localAddr, privateAddr),
-// 	expected: publicAddr1,
-// },

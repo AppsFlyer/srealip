@@ -40,7 +40,10 @@ func SecureRealIP(r *http.Request) string {
 		value := strings.TrimSpace(xForwardedFor[i])
 		realIP := net.ParseIP(value)
 
-		// TODO - handle Nil
+		// skip non IP address in xForwardedFor
+		if realIP == nil {
+			continue
+		}
 
 		// skip private addresses
 		if isPrivateIP(realIP) {
