@@ -8,7 +8,7 @@ import (
 
 // isPrivateIP checks if input IP is under private CIDR blocks.
 func isPrivateIP(ip net.IP) bool {
-	return ip.IsLoopback() && ip.IsLinkLocalUnicast() && ip.IsLinkLocalMulticast() && ip.IsPrivate()
+	return ip.IsLoopback() || ip.IsLinkLocalUnicast() || ip.IsLinkLocalMulticast() || ip.IsPrivate()
 }
 
 // extractIpFromRemoteAddr extracts clean IP - without port and spaces
@@ -39,6 +39,8 @@ func SecureRealIP(r *http.Request) string {
 	for i := len(xForwardedFor) - 1; i >= 0; i-- {
 		value := strings.TrimSpace(xForwardedFor[i])
 		realIP := net.ParseIP(value)
+
+		// TODO - handle Nil
 
 		// skip private addresses
 		if isPrivateIP(realIP) {
