@@ -1,6 +1,7 @@
 package srealip
 
 import (
+	"fmt"
 	"net"
 	"net/http"
 	"testing"
@@ -49,6 +50,7 @@ func TestSecureRealIp(t *testing.T) {
 	publicAddr3 := "119.15.55.11"
 	localAddr := "127.0.0.0"
 	privateAddr := "192.168.1.1"
+	publicAddr1WithPort := fmt.Sprintf("%s:%d", publicAddr1, 80)
 	invalidAddr := "invalidStr"
 
 	tests := map[string]struct {
@@ -64,6 +66,7 @@ func TestSecureRealIp(t *testing.T) {
 		"not IP X-Forwarded-For":          {request: newHttpRequest(publicAddr3, "", invalidAddr), expected: publicAddr3},
 		"not + vallid IP X-Forwarded-For": {request: newHttpRequest(publicAddr3, "", publicAddr2, privateAddr, invalidAddr), expected: publicAddr2},
 		"not IP X-Forwarded-For then IP":  {request: newHttpRequest(publicAddr3, "", publicAddr1, localAddr, invalidAddr), expected: publicAddr1},
+		"RemoteAddr with port":            {request: newHttpRequest(publicAddr1WithPort, "", localAddr, invalidAddr), expected: publicAddr1},
 		"invalid at all header":           {request: newHttpRequest(invalidAddr, invalidAddr, invalidAddr), expected: invalidAddr},
 		"empty IP at all header":          {request: newHttpRequest("", ""), expected: ""},
 	}
@@ -85,6 +88,7 @@ func TestNaiveRealIp(t *testing.T) {
 	localAddr := "127.0.0.0"
 	privateAddr := "192.168.1.1"
 	invalidAddr := "invalidStr"
+	publicAddr1WithPort := fmt.Sprintf("%s:%d", publicAddr1, 80)
 
 	tests := map[string]struct {
 		request  *http.Request
@@ -102,6 +106,7 @@ func TestNaiveRealIp(t *testing.T) {
 		"Private Headers":                 {request: newHttpRequest(publicAddr3, privateAddr, localAddr, privateAddr), expected: publicAddr3},
 		"Invalid X-Real-IP":               {request: newHttpRequest(publicAddr3, invalidAddr, publicAddr1), expected: publicAddr1},
 		"Invalid Headers":                 {request: newHttpRequest(publicAddr3, invalidAddr, invalidAddr), expected: publicAddr3},
+		"RemoteAddr with port":            {request: newHttpRequest(publicAddr1WithPort, "", localAddr, invalidAddr), expected: publicAddr1},
 		"empty IP at all header":          {request: newHttpRequest("", ""), expected: ""},
 		"invalid at all header":           {request: newHttpRequest(invalidAddr, invalidAddr, invalidAddr), expected: invalidAddr},
 	}
