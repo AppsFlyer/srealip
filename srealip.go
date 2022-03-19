@@ -51,7 +51,7 @@ func SecureRealIP(r *http.Request) string {
 }
 
 // NaiveRealIP returns the most real non-private IP address ("closest to client") from input request.
-// Note: This IP can be spoofed by malicious sensder, so avoid using it for security purposes
+// Note: This IP can be spoofed by malicious sender, so avoid using it for security purposes
 func NaiveRealIP(r *http.Request) string {
 	// X-Real-IP header should contain only one value
 	xRealIPHeader := r.Header.Get("X-Real-IP")
