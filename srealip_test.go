@@ -37,6 +37,9 @@ func TestIsPrivate(t *testing.T) {
 	privateAddr := "192.168.1.1"
 	assert.True(t, isPrivateIP(net.ParseIP(privateAddr)))
 
+	sharedAddr := "100.127.28.62"
+	assert.True(t, isPrivateIP(net.ParseIP(sharedAddr)))
+
 	invalidAddr := "string"
 	assert.False(t, isPrivateIP(net.ParseIP(invalidAddr)))
 
@@ -50,6 +53,7 @@ func TestSecureRealIp(t *testing.T) {
 	publicAddr3 := "119.15.55.11"
 	localAddr := "127.0.0.0"
 	privateAddr := "192.168.1.1"
+	sharedAddr := "100.127.28.62"
 	publicAddr1WithPort := fmt.Sprintf("%s:%d", publicAddr1, 80)
 	invalidAddr := "invalidStr"
 
@@ -62,6 +66,7 @@ func TestSecureRealIp(t *testing.T) {
 		"multiple X-Forwarded-For":        {request: newHttpRequest(publicAddr3, "", localAddr, publicAddr1, publicAddr2), expected: publicAddr2},
 		"Has local X-Forwarded-For":       {request: newHttpRequest(publicAddr3, "", publicAddr1, localAddr), expected: publicAddr1},
 		"Has private X-Forwarded-For":     {request: newHttpRequest(publicAddr3, "", publicAddr1, localAddr, privateAddr), expected: publicAddr1},
+		"Has shared X-Forwarded-For":      {request: newHttpRequest(publicAddr3, "", publicAddr1, sharedAddr, localAddr, privateAddr), expected: publicAddr1},
 		"Has X-Real-IP":                   {request: newHttpRequest(publicAddr3, publicAddr2, publicAddr1, localAddr), expected: publicAddr1},
 		"not IP X-Forwarded-For":          {request: newHttpRequest(publicAddr3, "", invalidAddr), expected: publicAddr3},
 		"not + vallid IP X-Forwarded-For": {request: newHttpRequest(publicAddr3, "", publicAddr2, privateAddr, invalidAddr), expected: publicAddr2},
@@ -87,6 +92,7 @@ func TestNaiveRealIp(t *testing.T) {
 	publicAddr4 := "119.16.55.11"
 	localAddr := "127.0.0.0"
 	privateAddr := "192.168.1.1"
+	sharedAddr := "100.127.28.62"
 	invalidAddr := "invalidStr"
 	publicAddr1WithPort := fmt.Sprintf("%s:%d", publicAddr1, 80)
 
@@ -98,6 +104,7 @@ func TestNaiveRealIp(t *testing.T) {
 		"X-Forwarded-For - one value":     {request: newHttpRequest(publicAddr1, "", publicAddr2), expected: publicAddr2},
 		"multiple X-Forwarded-For":        {request: newHttpRequest(publicAddr3, "", localAddr, publicAddr1, publicAddr2), expected: publicAddr1},
 		"Has private X-Forwarded-For":     {request: newHttpRequest(publicAddr3, "", privateAddr, publicAddr1, localAddr), expected: publicAddr1},
+		"Has shared X-Forwarded-For":      {request: newHttpRequest(publicAddr3, "", sharedAddr, publicAddr1, localAddr), expected: publicAddr1},
 		"not IP X-Forwarded-For":          {request: newHttpRequest(publicAddr3, "", invalidAddr), expected: publicAddr3},
 		"not + vallid IP X-Forwarded-For": {request: newHttpRequest(publicAddr3, "", privateAddr, publicAddr2, invalidAddr), expected: publicAddr2},
 		"not IP X-Forwarded-For then IP":  {request: newHttpRequest(publicAddr3, "", localAddr, invalidAddr, publicAddr1), expected: publicAddr1},

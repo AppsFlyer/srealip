@@ -8,7 +8,7 @@ import (
 
 // isPrivateIP checks if input IP is under private CIDR blocks.
 func isPrivateIP(ip net.IP) bool {
-	return ip.IsLoopback() || ip.IsLinkLocalUnicast() || ip.IsLinkLocalMulticast() || ip.IsPrivate()
+	return ip.IsLoopback() || ip.IsLinkLocalUnicast() || ip.IsLinkLocalMulticast() || ip.IsPrivate() || isInSharedAddressSpace(ip)
 }
 
 // extractIpFromRemoteAddr extracts clean IP - without port and spaces
